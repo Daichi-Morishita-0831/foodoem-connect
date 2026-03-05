@@ -6,10 +6,18 @@ import { TestimonialsSection } from "@/components/landing/testimonials-section";
 import { FaqSection } from "@/components/landing/faq-section";
 import { DualCta } from "@/components/landing/dual-cta";
 import { UtensilsCrossed } from "lucide-react";
+import { generateOrganizationLD, generateWebSiteLD } from "@/lib/seo/json-ld";
 
 export default function Home() {
+  const orgLD = generateOrganizationLD();
+  const siteLD = generateWebSiteLD();
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([orgLD, siteLD]) }}
+      />
       <Header />
       <main>
         <HeroSection />

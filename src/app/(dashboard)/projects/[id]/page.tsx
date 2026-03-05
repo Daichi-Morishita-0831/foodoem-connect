@@ -20,6 +20,9 @@ import {
   Shield,
   Factory,
 } from "lucide-react";
+import { DocumentUpload } from "@/components/project/document-upload";
+import { ProjectTimeline } from "@/components/project/project-timeline";
+import { getProjectTimeline } from "@/lib/supabase/queries/project-events";
 import type { Ingredient, ProcessStep } from "@/types";
 
 export default async function ProjectDetailPage({
@@ -34,7 +37,10 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const spec = await getRecipeSpec(id);
+  const [spec, timeline] = await Promise.all([
+    getRecipeSpec(id),
+    getProjectTimeline(id),
+  ]);
 
   return (
     <div>
@@ -294,6 +300,23 @@ export default async function ProjectDetailPage({
           )}
         </div>
       )}
+
+      {/* タイムライン */}
+      {timeline.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-sm text-gray-500">
+              案件タイムライン
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProjectTimeline events={timeline} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ドキュメント（商談以降で表示） */}
+      {project.oem_id && <DocumentUpload projectId={project.id} />}
     </div>
   );
 }

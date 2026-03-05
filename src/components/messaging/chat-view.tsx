@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, X } from "lucide-react";
 import Link from "next/link";
 import { useRealtimeMessages } from "@/hooks/use-realtime-messages";
 import { sendMessage } from "@/lib/supabase/actions/messages";
+import { AttachmentPreview } from "@/components/messaging/attachment-preview";
 import type { Message } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,10 @@ export function ChatView({
   const messages = useRealtimeMessages(projectId, initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 新規メッセージで自動スクロール
   useEffect(() => {
@@ -48,13 +51,42 @@ export function ChatView({
     });
   }, [messages.length]);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "message-attachments");
+      formData.append("projectId", projectId);
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        setPendingAttachments((prev) => [...prev, data.url]);
+      }
+    } catch {
+      // silently ignore upload errors
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && pendingAttachments.length === 0) || sending) return;
+
+    const content = text || (pendingAttachments.length > 0 ? "📎 ファイルを送信しました" : "");
+    const attachments = pendingAttachments.length > 0 ? [...pendingAttachments] : undefined;
 
     setInput("");
+    setPendingAttachments([]);
     setSending(true);
-    await sendMessage(projectId, text);
+    await sendMessage(projectId, content, attachments);
     setSending(false);
   };
 
@@ -120,6 +152,12 @@ export function ChatView({
                       <p className="whitespace-pre-wrap text-sm">
                         {msg.content}
                       </p>
+                      {msg.attachments && (
+                        <AttachmentPreview
+                          attachments={msg.attachments as string[]}
+                          isOwn={isOwn}
+                        />
+                      )}
                       <p
                         className={`mt-1 text-right text-[10px] ${
                           isOwn ? "text-orange-200" : "text-gray-400"
@@ -136,9 +174,49 @@ export function ChatView({
         )}
       </div>
 
+      {/* 添付ファイルプレビュー */}
+      {pendingAttachments.length > 0 && (
+        <div className="flex gap-2 border-t px-2 pt-2">
+          {pendingAttachments.map((url, i) => (
+            <div key={i} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={url}
+                alt="添付"
+                className="h-16 w-16 rounded-lg object-cover"
+              />
+              <button
+                onClick={() =>
+                  setPendingAttachments((prev) => prev.filter((_, j) => j !== i))
+                }
+                className="absolute -right-1 -top-1 rounded-full bg-gray-800 p-0.5 text-white"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 入力エリア */}
       <div className="border-t pt-4">
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || sending}
+            className="shrink-0"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -148,7 +226,7 @@ export function ChatView({
           />
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || sending}
+            disabled={(!input.trim() && pendingAttachments.length === 0) || sending}
             className="bg-orange-600 hover:bg-orange-700"
           >
             <Send className="h-4 w-4" />

@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // 認証不要のパス
 const publicPaths = ["/login", "/register", "/callback", "/"];
+// 認証不要のパスプレフィックス（公開ページ）
+const publicPrefixes = ["/oem/"];
 // 認証済みだがプロフィール未完了でもアクセス可能なパス
 const setupPaths = ["/setup"];
 
@@ -60,8 +62,16 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // 公開プレフィックスに一致するパスは認証不要（/oem/[uuid]形式の公開ページ）
+  const isPublicPrefix = publicPrefixes.some((prefix) => {
+    if (!pathname.startsWith(prefix)) return false;
+    // /oem/dashboard, /oem/profile 等のダッシュボードパスは除外
+    const rest = pathname.slice(prefix.length);
+    return /^[0-9a-f-]{36}/.test(rest);
+  });
+
   // 未認証 + 保護パス → ログインにリダイレクト
-  if (!user && !publicPaths.some((p) => pathname === p) && !setupPaths.includes(pathname)) {
+  if (!user && !publicPaths.some((p) => pathname === p) && !setupPaths.includes(pathname) && !isPublicPrefix) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -81,7 +91,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // 認証済み + ロール別アクセス制御
-  if (user && !publicPaths.includes(pathname) && !setupPaths.includes(pathname)) {
+  if (user && !publicPaths.includes(pathname) && !setupPaths.includes(pathname) && !isPublicPrefix) {
     const { data: profile } = await supabase
       .from("users")
       .select("role")

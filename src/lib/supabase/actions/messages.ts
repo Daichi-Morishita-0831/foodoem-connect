@@ -1,13 +1,16 @@
 "use server";
 
 import { createClient } from "../server";
+import { sendNewMessageEmail } from "@/lib/email/send";
+import { recordProjectEvent } from "./project-events";
 
 /**
  * メッセージを送信
  */
 export async function sendMessage(
   projectId: string,
-  content: string
+  content: string,
+  attachments?: string[]
 ): Promise<{ messageId: string } | { error: string }> {
   const supabase = await createClient();
 
@@ -22,6 +25,7 @@ export async function sendMessage(
       project_id: projectId,
       sender_id: user.id,
       content,
+      ...(attachments && attachments.length > 0 ? { attachments } : {}),
     })
     .select("id")
     .single();
@@ -52,7 +56,37 @@ export async function sendMessage(
         body: content.substring(0, 100),
         link: `/messages/${projectId}`,
       });
+
+      // メール通知
+      try {
+        const { data: sender } = await supabase
+          .from("users")
+          .select("company_name")
+          .eq("id", user.id)
+          .single();
+
+        const { data: recipient } = await supabase
+          .from("users")
+          .select("company_name")
+          .eq("id", recipientId)
+          .single();
+
+        if (sender && recipient) {
+          await sendNewMessageEmail(recipientId, {
+            recipientName: recipient.company_name,
+            senderName: sender.company_name,
+            projectTitle: project.title,
+            messagePreview: content,
+            projectId,
+          });
+        }
+      } catch (e) {
+        console.error("sendMessage email error:", e);
+      }
     }
+
+    // イベント記録
+    await recordProjectEvent(projectId, "message_sent", user.id);
   }
 
   return { messageId: data.id };

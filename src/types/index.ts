@@ -67,6 +67,7 @@ export interface User {
   phone: string | null;
   address: string | null;
   is_active: boolean;
+  email_notification_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -204,6 +205,28 @@ export interface Review {
   rating: number;
   comment: string | null;
   created_at: string;
+}
+
+// ---------- Project Events (タイムライン) ----------
+export type ProjectEventType =
+  | "status_change"
+  | "inquiry_sent"
+  | "inquiry_responded"
+  | "message_sent"
+  | "file_uploaded"
+  | "review_submitted";
+
+export interface ProjectEvent {
+  id: string;
+  project_id: string;
+  event_type: ProjectEventType;
+  old_value: string | null;
+  new_value: string | null;
+  actor_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  // 結合データ
+  actor?: User;
 }
 
 // ---------- Inquiry with Details (OEM側用) ----------

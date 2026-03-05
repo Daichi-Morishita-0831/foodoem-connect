@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "../server";
+import { sendInquiryEmail, sendInquiryResponseEmail } from "@/lib/email/send";
+import { recordProjectEvent } from "./project-events";
 
 /**
  * 問い合わせ送信 + 工場情報開示（DB関数でアトミック実行）
@@ -24,7 +26,70 @@ export async function submitInquiry(
     return { error: "問い合わせの送信に失敗しました" };
   }
 
-  return { inquiryId: data as string };
+  const inquiryId = data as string;
+
+  // メール通知 + イベント記録（非同期・失敗してもエラーにしない）
+  try {
+    const { data: inquiry } = await supabase
+      .from("inquiries")
+      .select("restaurant_id, match_result_id")
+      .eq("id", inquiryId)
+      .single();
+
+    if (inquiry) {
+      const { data: matchResult } = await supabase
+        .from("match_results")
+        .select("project_id, oem_profile_id")
+        .eq("id", inquiry.match_result_id)
+        .single();
+
+      if (matchResult) {
+        const { data: oemProfile } = await supabase
+          .from("oem_profiles")
+          .select("user_id")
+          .eq("id", matchResult.oem_profile_id)
+          .single();
+
+        const { data: project } = await supabase
+          .from("projects")
+          .select("title")
+          .eq("id", matchResult.project_id)
+          .single();
+
+        const { data: restaurant } = await supabase
+          .from("users")
+          .select("company_name")
+          .eq("id", inquiry.restaurant_id)
+          .single();
+
+        if (oemProfile && project && restaurant) {
+          const { data: oemUser } = await supabase
+            .from("users")
+            .select("company_name")
+            .eq("id", oemProfile.user_id)
+            .single();
+
+          await sendInquiryEmail(oemProfile.user_id, {
+            oemCompanyName: oemUser?.company_name ?? "",
+            restaurantName: restaurant.company_name,
+            projectTitle: project.title,
+            message,
+            inquiryId,
+          });
+        }
+
+        await recordProjectEvent(
+          matchResult.project_id,
+          "inquiry_sent",
+          inquiry.restaurant_id
+        );
+      }
+    }
+  } catch (e) {
+    console.error("submitInquiry notification error:", e);
+  }
+
+  return { inquiryId };
 }
 
 /**
@@ -112,6 +177,57 @@ export async function respondToInquiry(
         : null,
     link: `/projects/${matchResult.project_id}/matches`,
   });
+
+  // メール通知 + イベント記録
+  try {
+    const { data: project } = await supabase
+      .from("projects")
+      .select("title")
+      .eq("id", matchResult.project_id)
+      .single();
+
+    const { data: restaurant } = await supabase
+      .from("users")
+      .select("company_name")
+      .eq("id", inquiry.restaurant_id)
+      .single();
+
+    const { data: oemUser } = await supabase
+      .from("users")
+      .select("company_name")
+      .eq("id", user.id)
+      .single();
+
+    if (project && restaurant && oemUser) {
+      await sendInquiryResponseEmail(inquiry.restaurant_id, {
+        restaurantName: restaurant.company_name,
+        oemCompanyName: oemUser.company_name,
+        projectTitle: project.title,
+        status,
+        projectId: matchResult.project_id,
+      });
+    }
+
+    await recordProjectEvent(
+      matchResult.project_id,
+      "inquiry_responded",
+      user.id,
+      null,
+      status
+    );
+
+    if (status === "approved") {
+      await recordProjectEvent(
+        matchResult.project_id,
+        "status_change",
+        user.id,
+        "matching",
+        "negotiation"
+      );
+    }
+  } catch (e) {
+    console.error("respondToInquiry notification error:", e);
+  }
 
   return { success: true };
 }
