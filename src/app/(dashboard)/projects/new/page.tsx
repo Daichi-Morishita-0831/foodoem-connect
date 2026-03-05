@@ -7,6 +7,8 @@ import { RecipeSpecForm } from "@/components/spec/recipe-spec-form";
 import { RecipeSpecView } from "@/components/spec/recipe-spec-view";
 import { Button } from "@/components/ui/button";
 import { Mic, FileText, Loader2, Factory, Sparkles } from "lucide-react";
+import { createProject } from "@/lib/supabase/actions/projects";
+import { runMatching } from "@/lib/supabase/actions/matching";
 import type { RecipeSpecInput } from "@/lib/schemas/recipe-spec";
 
 type InputMode = "voice" | "form";
@@ -19,6 +21,7 @@ export default function NewProjectPage() {
   );
   const [isStructuring, setIsStructuring] = useState(false);
   const [structureError, setStructureError] = useState<string | null>(null);
+  const [isFindingFactories, setIsFindingFactories] = useState(false);
   const router = useRouter();
 
   const handleTranscript = (text: string) => {
@@ -54,12 +57,64 @@ export default function NewProjectPage() {
     }
   };
 
-  const handleFormSubmit = () => {
-    router.push("/projects/proj-001/matches");
+  const handleFindFactories = async () => {
+    if (!structuredSpec) return;
+
+    setIsFindingFactories(true);
+
+    try {
+      // 1. プロジェクト + レシピ仕様書を作成
+      const projectResult = await createProject({
+        title: structuredSpec.menu_name + "のOEM製造",
+        spec: {
+          raw_transcript: transcript,
+          menu_name: structuredSpec.menu_name,
+          menu_category: structuredSpec.menu_category,
+          main_ingredients: structuredSpec.main_ingredients,
+          seasoning_direction: structuredSpec.seasoning_direction,
+          target_unit_cost: structuredSpec.target_unit_cost,
+          target_selling_price: structuredSpec.target_selling_price,
+          desired_lot_size: structuredSpec.desired_lot_size,
+          delivery_frequency: structuredSpec.delivery_frequency,
+          allergens: structuredSpec.allergens,
+          process_steps: structuredSpec.process_steps,
+          preservation_method: structuredSpec.preservation_method,
+          shelf_life_days: structuredSpec.shelf_life_days,
+          packaging_type: structuredSpec.packaging_type,
+          required_certifications: structuredSpec.required_certifications,
+          ai_confidence_score: structuredSpec.confidence_score,
+        },
+      });
+
+      if ("error" in projectResult) {
+        setStructureError(projectResult.error);
+        return;
+      }
+
+      // 2. マッチング実行
+      const matchResult = await runMatching(projectResult.projectId);
+
+      if ("error" in matchResult) {
+        // マッチングエラーでもプロジェクトは作成済みなので詳細ページへ
+        router.push(`/projects/${projectResult.projectId}`);
+        return;
+      }
+
+      // 3. マッチング結果ページへ遷移
+      router.push(`/projects/${projectResult.projectId}/matches`);
+    } catch (err) {
+      setStructureError(
+        err instanceof Error ? err.message : "エラーが発生しました"
+      );
+    } finally {
+      setIsFindingFactories(false);
+    }
   };
 
-  const handleFindFactories = () => {
-    router.push("/projects/proj-001/matches");
+  const handleFormSubmit = async () => {
+    // フォーム入力の場合は簡易的にプロジェクトを作成
+    // TODO: フォームデータからRecipeSpecInputを構築
+    router.push("/projects");
   };
 
   return (
@@ -155,14 +210,30 @@ export default function NewProjectPage() {
 
               <RecipeSpecView spec={structuredSpec} />
 
+              {structureError && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {structureError}
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <Button
                   className="bg-orange-600 hover:bg-orange-700"
                   size="lg"
                   onClick={handleFindFactories}
+                  disabled={isFindingFactories}
                 >
-                  <Factory className="mr-2 h-4 w-4" />
-                  この仕様で工場を探す
+                  {isFindingFactories ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      工場を検索中...
+                    </>
+                  ) : (
+                    <>
+                      <Factory className="mr-2 h-4 w-4" />
+                      この仕様で工場を探す
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -170,6 +241,7 @@ export default function NewProjectPage() {
                     setStructuredSpec(null);
                     setTranscript(null);
                   }}
+                  disabled={isFindingFactories}
                 >
                   最初からやり直す
                 </Button>

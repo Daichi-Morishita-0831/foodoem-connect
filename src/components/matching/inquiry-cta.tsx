@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { MessageSquare, Check, Lock } from "lucide-react";
+import { MessageSquare, Check, Lock, Loader2 } from "lucide-react";
 
 export function InquiryCta({
   factoryName,
@@ -20,14 +20,22 @@ export function InquiryCta({
 }: {
   factoryName: string;
   matchScore: number;
-  onInquiry?: () => void;
+  onInquiry?: (message: string) => Promise<void>;
 }) {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSend = () => {
-    setSent(true);
-    onInquiry?.();
+  const handleSend = async () => {
+    setSending(true);
+    try {
+      await onInquiry?.(message);
+      setSent(true);
+    } catch {
+      // エラーハンドリングは親コンポーネントで行う
+    } finally {
+      setSending(false);
+    }
   };
 
   if (sent) {
@@ -77,8 +85,13 @@ export function InquiryCta({
           <Button
             className="w-full bg-orange-600 hover:bg-orange-700"
             onClick={handleSend}
+            disabled={sending}
           >
-            <MessageSquare className="mr-2 h-4 w-4" />
+            {sending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquare className="mr-2 h-4 w-4" />
+            )}
             問い合わせを送信
           </Button>
         </div>

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   projectStatusLabels,
   projectStatusColors,
-} from "@/lib/mock/projects";
+} from "@/lib/constants";
 
 export function ProjectStatusBadge({ status }: { status: string }) {
   return (

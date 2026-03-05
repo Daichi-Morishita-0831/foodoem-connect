@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MatchScoreBadge } from "./match-score-badge";
 import { InquiryCta } from "./inquiry-cta";
+import { submitInquiry } from "@/lib/supabase/actions/inquiries";
 import {
   Factory,
   MapPin,
@@ -18,19 +19,33 @@ import {
   Building2,
 } from "lucide-react";
 import type { MatchResult } from "@/types";
-import { cn } from "@/lib/utils";
 
 export function FactoryCard({ match }: { match: MatchResult }) {
   const [isRevealed, setIsRevealed] = useState(match.is_revealed);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
   const profile = match.oem_profile;
   if (!profile) return null;
 
-  const handleInquiry = () => {
+  const handleInquiry = async (message: string) => {
+    // 楽観的UI更新
     setIsRevealed(true);
+    setInquiryError(null);
+
+    const result = await submitInquiry(match.id, message);
+
+    if ("error" in result) {
+      // エラー時はロールバック
+      if (!match.is_revealed) {
+        setIsRevealed(false);
+      }
+      setInquiryError(result.error);
+    }
   };
 
   // モザイク用：工場名を伏せ字に
-  const maskedName = profile.description.slice(0, 3) + "●●●食品";
+  const maskedName = profile.description
+    ? profile.description.slice(0, 3) + "●●●食品"
+    : "●●●食品";
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg">
@@ -70,7 +85,7 @@ export function FactoryCard({ match }: { match: MatchResult }) {
             <div>
               <p className="text-xs font-medium text-gray-500">得意分野</p>
               <div className="mt-1 flex flex-wrap gap-1">
-                {profile.specialties.map((s) => (
+                {(profile.specialties as string[]).map((s) => (
                   <Badge key={s} variant="secondary" className="text-xs">
                     {s}
                   </Badge>
@@ -85,7 +100,7 @@ export function FactoryCard({ match }: { match: MatchResult }) {
             <div>
               <p className="text-xs font-medium text-gray-500">取得認証</p>
               <div className="mt-1 flex flex-wrap gap-1">
-                {profile.certifications.map((c) => (
+                {(profile.certifications as string[]).map((c) => (
                   <Badge
                     key={c}
                     variant="outline"
@@ -104,8 +119,8 @@ export function FactoryCard({ match }: { match: MatchResult }) {
             <div>
               <p className="text-xs font-medium text-gray-500">対応ロット</p>
               <p className="text-sm text-gray-700">
-                {profile.min_lot_size.toLocaleString()}個 〜{" "}
-                {profile.max_lot_size.toLocaleString()}個
+                {profile.min_lot_size?.toLocaleString()}個 〜{" "}
+                {profile.max_lot_size?.toLocaleString()}個
               </p>
             </div>
           </div>
@@ -116,7 +131,7 @@ export function FactoryCard({ match }: { match: MatchResult }) {
             <div>
               <p className="text-xs font-medium text-gray-500">配送エリア</p>
               <p className="text-sm text-gray-700">
-                {profile.delivery_areas.join("、")}
+                {(profile.delivery_areas as string[]).join("、")}
               </p>
             </div>
           </div>
@@ -141,6 +156,13 @@ export function FactoryCard({ match }: { match: MatchResult }) {
           </div>
         </div>
 
+        {/* エラーメッセージ */}
+        {inquiryError && (
+          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {inquiryError}
+          </div>
+        )}
+
         {/* 非開示情報（モザイク） */}
         {!isRevealed && (
           <div className="relative overflow-hidden rounded-lg border border-dashed border-gray-200 p-4">
@@ -154,7 +176,7 @@ export function FactoryCard({ match }: { match: MatchResult }) {
                 TEL: 0XX-XXXX-XXXX
               </p>
               <p className="mt-1 text-sm text-gray-600">
-                {profile.description.slice(0, 50)}...
+                {profile.description?.slice(0, 50)}...
               </p>
             </div>
             <div className="absolute inset-0 flex items-center justify-center">

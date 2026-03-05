@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProjectStatusBadge } from "@/components/project/project-status-badge";
-import { mockProjects, mockRecipeSpecs } from "@/lib/mock/projects";
+import { getProject, getRecipeSpec } from "@/lib/supabase/queries/projects";
 import {
   menuCategoryLabels,
   preservationMethodLabels,
@@ -19,11 +20,21 @@ import {
   Shield,
   Factory,
 } from "lucide-react";
+import type { Ingredient, ProcessStep } from "@/types";
 
-export default function ProjectDetailPage() {
-  // デモ: 最初のプロジェクトとスペックを表示
-  const project = mockProjects[0];
-  const spec = mockRecipeSpecs[0];
+export default async function ProjectDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const project = await getProject(id);
+
+  if (!project) {
+    notFound();
+  }
+
+  const spec = await getRecipeSpec(id);
 
   return (
     <div>
@@ -105,7 +116,7 @@ export default function ProjectDetailPage() {
                   メイン食材
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {spec.main_ingredients.map((ing) => (
+                  {(spec.main_ingredients as Ingredient[]).map((ing) => (
                     <Badge
                       key={ing.name}
                       variant="outline"
@@ -188,7 +199,7 @@ export default function ProjectDetailPage() {
                   含有アレルゲン
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {spec.allergens.map((a) => (
+                  {(spec.allergens as string[]).map((a) => (
                     <Badge
                       key={a}
                       className="bg-red-50 text-red-700 border-red-200"
@@ -207,7 +218,7 @@ export default function ProjectDetailPage() {
                   必要認証
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {spec.required_certifications.map((c) => (
+                  {(spec.required_certifications as string[]).map((c) => (
                     <Badge
                       key={c}
                       className="bg-green-50 text-green-700 border-green-200"
@@ -225,7 +236,7 @@ export default function ProjectDetailPage() {
                   想定製造工程
                 </p>
                 <div className="space-y-3">
-                  {spec.process_steps.map((step) => (
+                  {(spec.process_steps as ProcessStep[]).map((step) => (
                     <div
                       key={step.order}
                       className="flex items-start gap-3"
@@ -255,7 +266,8 @@ export default function ProjectDetailPage() {
               {spec.ai_confidence_score && (
                 <div className="rounded-lg bg-blue-50 p-3 text-sm">
                   <span className="font-medium text-blue-700">
-                    AI構造化信頼度: {(spec.ai_confidence_score * 100).toFixed(0)}%
+                    AI構造化信頼度:{" "}
+                    {(Number(spec.ai_confidence_score) * 100).toFixed(0)}%
                   </span>
                   <span className="ml-2 text-blue-600">
                     音声から自動生成された仕様です。内容を確認・修正してください。

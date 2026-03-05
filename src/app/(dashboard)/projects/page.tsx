@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/project/project-card";
-import { mockProjects } from "@/lib/mock/projects";
+import { getMyProjects } from "@/lib/supabase/queries/projects";
 import { Mic, Plus } from "lucide-react";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const projects = await getMyProjects();
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -22,7 +24,7 @@ export default function ProjectsPage() {
         </Link>
       </div>
 
-      {mockProjects.length === 0 ? (
+      {projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-16">
           <Plus className="mb-4 h-12 w-12 text-gray-300" />
           <p className="mb-4 text-gray-500">まだ案件がありません</p>
@@ -35,7 +37,7 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {mockProjects.map((project) => (
+          {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>
