@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // 認証不要のパス
-const publicPaths = ["/login", "/register", "/callback", "/"];
+const publicPaths = ["/login", "/register", "/callback", "/", "/offline"];
 // 認証不要のパスプレフィックス（公開ページ）
 const publicPrefixes = ["/oem/"];
 // 認証済みだがプロフィール未完了でもアクセス可能なパス
@@ -57,8 +57,18 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // API routes と static assets は除外
-  if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) {
+  // API routes、static assets、Next.js生成ファイルは除外
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/sw.js" ||
+    pathname === "/icon" ||
+    pathname === "/apple-icon" ||
+    pathname === "/opengraph-image"
+  ) {
     return supabaseResponse;
   }
 
