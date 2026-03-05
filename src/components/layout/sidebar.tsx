@@ -11,42 +11,82 @@ import {
   LayoutDashboard,
   LogOut,
   Building2,
+  ClipboardList,
+  UserCircle,
+  Users,
+  BarChart3,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@/types";
+import { NotificationBell } from "./notification-bell";
+import type { User, UserRole } from "@/types";
 
-const navItems = [
-  {
-    label: "ダッシュボード",
-    href: "/projects",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "新規依頼",
-    href: "/projects/new",
-    icon: Mic,
-  },
-  {
-    label: "案件一覧",
-    href: "/projects",
-    icon: FolderOpen,
-  },
-  {
-    label: "メッセージ",
-    href: "/messages",
-    icon: MessageSquare,
-  },
-  {
-    label: "設定",
-    href: "/settings",
-    icon: Settings,
-  },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const restaurantNavItems: NavItem[] = [
+  { label: "ダッシュボード", href: "/projects", icon: LayoutDashboard },
+  { label: "新規依頼", href: "/projects/new", icon: Mic },
+  { label: "案件一覧", href: "/projects", icon: FolderOpen },
+  { label: "メッセージ", href: "/messages", icon: MessageSquare },
+  { label: "設定", href: "/settings", icon: Settings },
 ];
+
+const oemNavItems: NavItem[] = [
+  { label: "ダッシュボード", href: "/oem/dashboard", icon: LayoutDashboard },
+  { label: "問い合わせ", href: "/oem/inquiries", icon: ClipboardList },
+  { label: "プロフィール", href: "/oem/profile", icon: UserCircle },
+  { label: "メッセージ", href: "/messages", icon: MessageSquare },
+  { label: "設定", href: "/settings", icon: Settings },
+];
+
+const adminNavItems: NavItem[] = [
+  { label: "概要", href: "/admin", icon: BarChart3 },
+  { label: "ユーザー管理", href: "/admin/users", icon: Users },
+  { label: "案件管理", href: "/admin/projects", icon: FolderOpen },
+  { label: "設定", href: "/settings", icon: Settings },
+];
+
+function getNavItems(role: UserRole): NavItem[] {
+  switch (role) {
+    case "oem":
+      return oemNavItems;
+    case "admin":
+      return adminNavItems;
+    default:
+      return restaurantNavItems;
+  }
+}
+
+function getRoleLabel(role: UserRole): string {
+  switch (role) {
+    case "oem":
+      return "OEM工場";
+    case "admin":
+      return "管理者";
+    default:
+      return "飲食店";
+  }
+}
+
+function getRoleIcon(role: UserRole) {
+  switch (role) {
+    case "admin":
+      return Shield;
+    default:
+      return Building2;
+  }
+}
 
 export function Sidebar({ user }: { user: User }) {
   const pathname = usePathname();
   const router = useRouter();
+  const navItems = getNavItems(user.role);
+  const RoleIcon = getRoleIcon(user.role);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -57,15 +97,20 @@ export function Sidebar({ user }: { user: User }) {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r bg-gray-50/50 lg:flex lg:flex-col">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <UtensilsCrossed className="h-5 w-5 text-orange-600" />
-        <span className="text-lg font-bold text-gray-900">
-          FoodOEM <span className="text-orange-600">Connect</span>
-        </span>
+      <div className="flex h-16 items-center justify-between border-b px-6">
+        <div className="flex items-center gap-2">
+          <UtensilsCrossed className="h-5 w-5 text-orange-600" />
+          <span className="text-lg font-bold text-gray-900">
+            FoodOEM <span className="text-orange-600">Connect</span>
+          </span>
+        </div>
+        <NotificationBell userId={user.id} />
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/" && pathname.startsWith(item.href + "/"));
           return (
             <Link
               key={item.href + item.label}
@@ -88,15 +133,13 @@ export function Sidebar({ user }: { user: User }) {
       <div className="border-t p-4">
         <div className="mb-3 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
-            <Building2 className="h-4 w-4 text-orange-600" />
+            <RoleIcon className="h-4 w-4 text-orange-600" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-gray-900">
               {user.company_name}
             </p>
-            <p className="text-xs text-gray-500">
-              {user.role === "restaurant" ? "飲食店" : "OEM工場"}
-            </p>
+            <p className="text-xs text-gray-500">{getRoleLabel(user.role)}</p>
           </div>
         </div>
         <button

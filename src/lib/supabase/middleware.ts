@@ -6,6 +6,20 @@ const publicPaths = ["/login", "/register", "/callback", "/"];
 // 認証済みだがプロフィール未完了でもアクセス可能なパス
 const setupPaths = ["/setup"];
 
+// ロール別のデフォルトパス
+const roleDefaultPaths: Record<string, string> = {
+  restaurant: "/projects",
+  oem: "/oem/dashboard",
+  admin: "/admin",
+};
+
+// ロール別のアクセス許可プレフィックス
+const roleAllowedPrefixes: Record<string, string[]> = {
+  restaurant: ["/projects", "/messages", "/settings"],
+  oem: ["/oem", "/messages", "/settings"],
+  admin: ["/admin", "/projects", "/oem", "/messages", "/settings"],
+};
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -41,21 +55,51 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 未認証 + 保護パス → ログインにリダイレクト
-  if (!user && !publicPaths.some((p) => pathname === p) && pathname.startsWith("/")) {
-    // API routes と static assets は除外
-    if (!pathname.startsWith("/api/")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
+  // API routes と static assets は除外
+  if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) {
+    return supabaseResponse;
   }
 
-  // 認証済み + ログイン/登録ページ → ダッシュボードにリダイレクト（setupは除外）
-  if (user && (pathname === "/login" || pathname === "/register") && !setupPaths.includes(pathname)) {
+  // 未認証 + 保護パス → ログインにリダイレクト
+  if (!user && !publicPaths.some((p) => pathname === p) && !setupPaths.includes(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/projects";
+    url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  // 認証済み + ログイン/登録ページ → ロール別ダッシュボードにリダイレクト
+  if (user && (pathname === "/login" || pathname === "/register")) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const url = request.nextUrl.clone();
+    url.pathname = roleDefaultPaths[profile?.role ?? "restaurant"] ?? "/projects";
+    return NextResponse.redirect(url);
+  }
+
+  // 認証済み + ロール別アクセス制御
+  if (user && !publicPaths.includes(pathname) && !setupPaths.includes(pathname)) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      const role = profile.role as string;
+      const allowed = roleAllowedPrefixes[role] ?? [];
+
+      // 許可されていないパスへのアクセス → ロール別デフォルトにリダイレクト
+      const isAllowed = allowed.some((prefix) => pathname.startsWith(prefix));
+      if (!isAllowed && pathname !== "/") {
+        const url = request.nextUrl.clone();
+        url.pathname = roleDefaultPaths[role] ?? "/projects";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

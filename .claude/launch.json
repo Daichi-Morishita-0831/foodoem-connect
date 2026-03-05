@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "foodoem-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3001"],
-      "port": 3001
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "cd /Users/vegekul-024/Desktop/Claude/foodoem-connect && npx next dev"],
+      "port": 3000
     }
   ]
 }

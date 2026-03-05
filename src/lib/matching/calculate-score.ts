@@ -5,6 +5,11 @@ interface ScoreResult {
   reasons: MatchReason[];
 }
 
+interface ScoreOptions {
+  /** OEMの平均評価 (0-5, 0 = レビューなし) */
+  oemAverageRating?: number;
+}
+
 /**
  * マッチングスコアを計算（100点満点）
  * - 得意分野: 30点
@@ -14,7 +19,8 @@ interface ScoreResult {
  */
 export function calculateMatchScore(
   spec: RecipeSpec,
-  profile: OemProfile
+  profile: OemProfile,
+  options?: ScoreOptions
 ): ScoreResult {
   const reasons: MatchReason[] = [];
   let totalScore = 0;
@@ -161,8 +167,47 @@ export function calculateMatchScore(
     });
   }
 
+  // --- 保存方法互換性ボーナス (+5点) ---
+  if (spec.preservation_method) {
+    const preservationKeywords: Record<string, string[]> = {
+      chilled: ["冷凍", "冷凍食品", "惣菜"],
+      frozen: ["冷凍", "冷凍食品"],
+      ambient: ["レトルト", "乾燥", "缶詰"],
+    };
+    const keywords = preservationKeywords[spec.preservation_method] ?? [];
+    const hasCompatible = profile.specialties.some((s) =>
+      keywords.some((kw) => s.includes(kw))
+    );
+    if (hasCompatible) {
+      totalScore += 5;
+      reasons.push({
+        category: "保存方法",
+        description: "希望の保存方法に対応可能",
+        is_match: true,
+      });
+    }
+  }
+
+  // --- OEM評価ボーナス (+3〜-5点) ---
+  const avgRating = options?.oemAverageRating ?? 0;
+  if (avgRating >= 4.0) {
+    totalScore += 3;
+    reasons.push({
+      category: "評価",
+      description: `平均評価 ${avgRating} (高評価)`,
+      is_match: true,
+    });
+  } else if (avgRating > 0 && avgRating < 2.5) {
+    totalScore -= 5;
+    reasons.push({
+      category: "評価",
+      description: `平均評価 ${avgRating} (低評価)`,
+      is_match: false,
+    });
+  }
+
   return {
-    score: Math.min(100, totalScore),
+    score: Math.max(0, Math.min(100, totalScore)),
     reasons,
   };
 }

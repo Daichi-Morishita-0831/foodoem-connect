@@ -2,7 +2,7 @@
 // FoodOEM Connect - 型定義
 // ==========================================
 
-export type UserRole = "restaurant" | "oem";
+export type UserRole = "restaurant" | "oem" | "admin";
 
 export type ProjectStatus =
   | "draft"
@@ -66,6 +66,7 @@ export interface User {
   representative_name: string | null;
   phone: string | null;
   address: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -171,4 +172,51 @@ export interface Message {
   content: string;
   attachments: string[];
   created_at: string;
+  // 結合データ
+  sender?: User;
+}
+
+// ---------- Notifications ----------
+export type NotificationType =
+  | "inquiry_received"
+  | "inquiry_responded"
+  | "new_message"
+  | "project_update";
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+// ---------- Reviews ----------
+export interface Review {
+  id: string;
+  project_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+// ---------- Inquiry with Details (OEM側用) ----------
+export interface InquiryWithDetails {
+  id: string;
+  match_result_id: string;
+  restaurant_id: string;
+  message: string;
+  status: InquiryStatus;
+  created_at: string;
+  // 結合データ
+  restaurant?: User;
+  project?: Project;
+  recipe_spec?: RecipeSpec;
+  match_result?: MatchResult;
 }
