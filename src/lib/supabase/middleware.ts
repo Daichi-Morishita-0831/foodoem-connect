@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // 認証不要のパス
 const publicPaths = ["/login", "/register", "/callback", "/"];
+// 認証済みだがプロフィール未完了でもアクセス可能なパス
+const setupPaths = ["/setup"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -49,8 +51,8 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // 認証済み + ログイン/登録ページ → ダッシュボードにリダイレクト
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  // 認証済み + ログイン/登録ページ → ダッシュボードにリダイレクト（setupは除外）
+  if (user && (pathname === "/login" || pathname === "/register") && !setupPaths.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/projects";
     return NextResponse.redirect(url);

@@ -1,57 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, UserPlus } from "lucide-react";
-import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
+import { Loader2, Check } from "lucide-react";
 import type { UserRole } from "@/types";
 
-export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function SetupPage() {
   const [companyName, setCompanyName] = useState("");
   const [role, setRole] = useState<UserRole>("restaurant");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      // Already has profile → go to dashboard
+      const { data: profile } = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        router.push("/projects");
+        return;
+      }
+
+      setUserId(user.id);
+    };
+    checkUser();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return;
+
     setError(null);
     setLoading(true);
 
     try {
       const supabase = createClient();
 
-      const { data: authData, error: signUpError } =
-        await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
-      }
-
-      if (!authData.user) {
-        setError("ユーザー作成に失敗しました");
-        return;
-      }
-
       const { error: profileError } = await supabase.from("users").insert({
-        id: authData.user.id,
+        id: userId,
         role,
         company_name: companyName,
       });
@@ -63,49 +76,45 @@ export default function RegisterPage() {
 
       if (role === "oem") {
         await supabase.from("oem_profiles").insert({
-          user_id: authData.user.id,
+          user_id: userId,
         });
       }
 
       router.push("/projects");
       router.refresh();
     } catch {
-      setError("登録に失敗しました");
+      setError("設定に失敗しました");
     } finally {
       setLoading(false);
     }
   };
 
+  if (!userId) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-orange-600" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-center">新規登録</CardTitle>
+        <CardTitle className="text-center">プロフィール設定</CardTitle>
+        <CardDescription className="text-center">
+          アカウント情報を入力して登録を完了してください
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
 
-        {/* Social Login */}
-        <SocialLoginButtons />
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">
-              またはメールで登録
-            </span>
-          </div>
-        </div>
-
-        {/* Registration Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Role selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">アカウント種別</label>
             <div className="grid grid-cols-2 gap-3">
@@ -155,36 +164,8 @@ export default function RegisterPage() {
               required
             />
           </div>
-
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              メールアドレス
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@restaurant.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              パスワード
-            </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="6文字以上"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-
+        </CardContent>
+        <CardFooter>
           <Button
             type="submit"
             className="w-full bg-orange-600 hover:bg-orange-700"
@@ -193,23 +174,12 @@ export default function RegisterPage() {
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <UserPlus className="mr-2 h-4 w-4" />
+              <Check className="mr-2 h-4 w-4" />
             )}
-            アカウント作成
+            登録を完了する
           </Button>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <p className="text-center text-sm text-gray-500 w-full">
-          すでにアカウントをお持ちの方は{" "}
-          <Link
-            href="/login"
-            className="font-medium text-orange-600 hover:text-orange-700"
-          >
-            ログイン
-          </Link>
-        </p>
-      </CardFooter>
+        </CardFooter>
+      </form>
     </Card>
   );
 }
