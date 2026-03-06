@@ -82,8 +82,11 @@ export async function updateSession(request: NextRequest) {
     return /^[0-9a-f-]{36}/.test(rest);
   });
 
+  // 招待ページは認証不要
+  const isInvitePage = pathname.startsWith("/invite/");
+
   // 未認証 + 保護パス → ログインにリダイレクト
-  if (!user && !publicPaths.some((p) => pathname === p) && !setupPaths.includes(pathname) && !isPublicPrefix) {
+  if (!user && !publicPaths.some((p) => pathname === p) && !setupPaths.includes(pathname) && !isPublicPrefix && !isInvitePage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

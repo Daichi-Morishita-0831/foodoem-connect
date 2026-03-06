@@ -16,6 +16,7 @@ import {
   Users,
   BarChart3,
   Shield,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -48,6 +49,7 @@ const adminNavItems: NavItem[] = [
   { label: "概要", href: "/admin", icon: BarChart3 },
   { label: "ユーザー管理", href: "/admin/users", icon: Users },
   { label: "案件管理", href: "/admin/projects", icon: FolderOpen },
+  { label: "OEM招待", href: "/admin/invitations", icon: Send },
   { label: "設定", href: "/settings", icon: Settings },
 ];
 

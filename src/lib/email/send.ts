@@ -2,6 +2,7 @@ import { resend, FROM_EMAIL } from "./resend";
 import { renderInquiryNotification } from "./templates/inquiry-notification";
 import { renderInquiryResponse } from "./templates/inquiry-response";
 import { renderNewMessage } from "./templates/new-message";
+import { renderOemInvitation } from "./templates/oem-invitation";
 import { createClient } from "@/lib/supabase/server";
 
 async function isEmailEnabled(userId: string): Promise<{ enabled: boolean; email: string | null }> {
@@ -90,5 +91,24 @@ export async function sendNewMessageEmail(
     await resend.emails.send({ from: FROM_EMAIL, to: email, subject, html });
   } catch (error) {
     console.error("sendNewMessageEmail error:", error);
+  }
+}
+
+/**
+ * OEM工場招待メール
+ */
+export async function sendOemInvitationEmail(
+  email: string,
+  data: {
+    companyName: string;
+    inviterMessage?: string;
+    token: string;
+  }
+) {
+  try {
+    const { subject, html } = renderOemInvitation(data);
+    await resend.emails.send({ from: FROM_EMAIL, to: email, subject, html });
+  } catch (error) {
+    console.error("sendOemInvitationEmail error:", error);
   }
 }
