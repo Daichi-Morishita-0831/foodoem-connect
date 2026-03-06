@@ -1,0 +1,101 @@
+{
+  "common": {
+    "appName": "FoodOEM Connect",
+    "tagline": "Connecting Restaurants with OEM Factories",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "settings": "Settings",
+    "search": "Search",
+    "noResults": "No results found",
+    "free": "Free"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "newProject": "New Project",
+    "projects": "Projects",
+    "messages": "Messages",
+    "settings": "Settings",
+    "inquiries": "Inquiries",
+    "profile": "Profile",
+    "overview": "Overview",
+    "userManagement": "User Management",
+    "projectManagement": "Project Management",
+    "oemInvitation": "OEM Invitation"
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "loginSubtitle": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here",
+    "lineLogin": "Login with LINE",
+    "googleLogin": "Login with Google"
+  },
+  "landing": {
+    "heroTitle": "Find the Perfect Food OEM Factory with Voice AI",
+    "heroSubtitle": "Just tell us what you need. Our AI matches you with the ideal food OEM manufacturer.",
+    "cta": "Get Started Free",
+    "howItWorks": "How It Works",
+    "features": "Features",
+    "testimonials": "Testimonials",
+    "faq": "FAQ"
+  },
+  "project": {
+    "recipeSpec": "Recipe Specification",
+    "menuName": "Menu Name",
+    "category": "Category",
+    "seasoningDirection": "Seasoning Direction",
+    "mainIngredients": "Main Ingredients",
+    "targetCost": "Target Cost",
+    "desiredLot": "Desired Lot Size",
+    "deliveryFrequency": "Delivery Frequency",
+    "preservationMethod": "Preservation Method",
+    "shelfLife": "Shelf Life",
+    "packaging": "Packaging",
+    "allergens": "Allergens",
+    "certifications": "Required Certifications",
+    "processSteps": "Manufacturing Process",
+    "aiConfidence": "AI Confidence Score",
+    "aiSuggestions": "AI Suggestions",
+    "costEstimate": "AI Cost Estimate",
+    "viewMatches": "View Matches",
+    "backToProjects": "Back to Projects",
+    "timeline": "Project Timeline",
+    "undecided": "TBD"
+  },
+  "matching": {
+    "searchingFactories": "AI is searching for the best factories...",
+    "matchScore": "Match Score",
+    "matchReasons": "Match Reasons",
+    "inquire": "Send Inquiry",
+    "disclosedOnInquiry": "Disclosed upon inquiry",
+    "disclosed": "Factory details disclosed"
+  },
+  "billing": {
+    "title": "Billing",
+    "subtitle": "Manage your plan, view billing history.",
+    "currentPlan": "Current Plan",
+    "planList": "Plans",
+    "billingHistory": "Billing History",
+    "manageBilling": "Manage Billing",
+    "changePlan": "Switch to this plan",
+    "noHistory": "No billing history yet."
+  },
+  "roles": {
+    "restaurant": "Restaurant",
+    "oem": "OEM Factory",
+    "admin": "Admin"
+  }
+}

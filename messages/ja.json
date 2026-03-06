@@ -1,0 +1,101 @@
+{
+  "common": {
+    "appName": "FoodOEM Connect",
+    "tagline": "飲食店とOEM工場をつなぐ",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る",
+    "next": "次へ",
+    "submit": "送信",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "register": "登録",
+    "settings": "設定",
+    "search": "検索",
+    "noResults": "結果がありません",
+    "free": "無料"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "newProject": "新規依頼",
+    "projects": "案件一覧",
+    "messages": "メッセージ",
+    "settings": "設定",
+    "inquiries": "問い合わせ",
+    "profile": "プロフィール",
+    "overview": "概要",
+    "userManagement": "ユーザー管理",
+    "projectManagement": "案件管理",
+    "oemInvitation": "OEM招待"
+  },
+  "auth": {
+    "loginTitle": "ログイン",
+    "loginSubtitle": "アカウントにログインしてください",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "forgotPassword": "パスワードを忘れた方",
+    "noAccount": "アカウントをお持ちでない方は",
+    "registerHere": "こちらから登録",
+    "lineLogin": "LINEでログイン",
+    "googleLogin": "Googleでログイン"
+  },
+  "landing": {
+    "heroTitle": "音声AIで最適な食品OEM工場が見つかる",
+    "heroSubtitle": "あなたの要望を話すだけ。AIが最適な食品OEM工場をマッチングします。",
+    "cta": "無料で始める",
+    "howItWorks": "使い方",
+    "features": "特徴",
+    "testimonials": "導入事例",
+    "faq": "よくある質問"
+  },
+  "project": {
+    "recipeSpec": "レシピ仕様書",
+    "menuName": "メニュー名",
+    "category": "カテゴリ",
+    "seasoningDirection": "味付けの方向性",
+    "mainIngredients": "メイン食材",
+    "targetCost": "ターゲット原価",
+    "desiredLot": "希望ロット",
+    "deliveryFrequency": "配送頻度",
+    "preservationMethod": "保存方法",
+    "shelfLife": "賞味期限",
+    "packaging": "包装",
+    "allergens": "含有アレルゲン",
+    "certifications": "必要認証",
+    "processSteps": "想定製造工程",
+    "aiConfidence": "AI構造化信頼度",
+    "aiSuggestions": "AI仕様提案",
+    "costEstimate": "AI原価概算",
+    "viewMatches": "マッチング結果を見る",
+    "backToProjects": "案件一覧に戻る",
+    "timeline": "案件タイムライン",
+    "undecided": "未定"
+  },
+  "matching": {
+    "searchingFactories": "AIが最適な工場を検索中...",
+    "matchScore": "マッチスコア",
+    "matchReasons": "マッチ理由",
+    "inquire": "問い合わせる",
+    "disclosedOnInquiry": "問い合わせで開示されます",
+    "disclosed": "工場情報が開示されました"
+  },
+  "billing": {
+    "title": "課金設定",
+    "subtitle": "プランの確認・変更、請求履歴の確認ができます。",
+    "currentPlan": "現在のプラン",
+    "planList": "プラン一覧",
+    "billingHistory": "請求履歴",
+    "manageBilling": "請求管理",
+    "changePlan": "このプランに変更",
+    "noHistory": "請求履歴はまだありません。"
+  },
+  "roles": {
+    "restaurant": "飲食店",
+    "oem": "OEM工場",
+    "admin": "管理者"
+  }
+}

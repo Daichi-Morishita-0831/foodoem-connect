@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { DocumentUpload } from "@/components/project/document-upload";
 import { ProjectTimeline } from "@/components/project/project-timeline";
+import { AiSuggestions } from "@/components/project/ai-suggestions";
+import { CostEstimateCard } from "@/components/project/cost-estimate-card";
 import { getProjectTimeline } from "@/lib/supabase/queries/project-events";
 import type { Ingredient, ProcessStep } from "@/types";
 
@@ -282,6 +284,12 @@ export default async function ProjectDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* AI仕様提案 & 原価概算 */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <AiSuggestions specId={spec.id} />
+            <CostEstimateCard specId={spec.id} />
+          </div>
 
           {/* 音声原文 */}
           {spec.raw_transcript && (

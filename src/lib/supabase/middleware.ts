@@ -59,6 +59,7 @@ export async function updateSession(request: NextRequest) {
 
   // API routes、static assets、Next.js生成ファイルは除外
   if (
+    pathname.startsWith("/api/stripe/webhook") ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/monitoring" ||
