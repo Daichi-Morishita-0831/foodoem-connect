@@ -61,6 +61,8 @@ export async function updateSession(request: NextRequest) {
   if (
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
+    pathname === "/monitoring" ||
+    pathname.startsWith("/monitoring/") ||
     pathname === "/manifest.webmanifest" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
