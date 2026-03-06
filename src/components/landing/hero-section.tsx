@@ -4,14 +4,14 @@ import { Mic, ArrowRight, Factory, Shield } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50">
+    <section aria-labelledby="hero-heading" className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-amber-50">
       <div className="container mx-auto px-4 py-20 md:py-32">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-1.5 text-sm text-orange-700">
             <Mic className="h-4 w-4" />
             音声AIで簡単マッチング
           </div>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">
+          <h1 id="hero-heading" className="mb-6 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">
             あなたのメニューを
             <br />
             <span className="text-orange-600">量産できる工場</span>が
@@ -52,8 +52,8 @@ export function HeroSection() {
         </div>
       </div>
       {/* 装飾 */}
-      <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-orange-100/50 blur-3xl" />
-      <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-amber-100/50 blur-3xl" />
+      <div aria-hidden="true" className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-orange-100/50 blur-3xl" />
+      <div aria-hidden="true" className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-amber-100/50 blur-3xl" />
     </section>
   );
 }

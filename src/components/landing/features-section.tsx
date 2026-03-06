@@ -48,10 +48,10 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="bg-white py-20">
+    <section id="features" aria-labelledby="features-heading" className="bg-white py-20">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-3 text-3xl font-bold text-gray-900">
+          <h2 id="features-heading" className="mb-3 text-3xl font-bold text-gray-900">
             選ばれる理由
           </h2>
           <p className="text-gray-500">

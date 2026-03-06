@@ -36,10 +36,10 @@ const faqs = [
 
 export function FaqSection() {
   return (
-    <section className="bg-white py-20">
+    <section aria-labelledby="faq-heading" className="bg-white py-20">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-3 text-3xl font-bold text-gray-900">
+          <h2 id="faq-heading" className="mb-3 text-3xl font-bold text-gray-900">
             よくある質問
           </h2>
           <p className="text-gray-500">

@@ -45,7 +45,7 @@ export function Header() {
         {/* Mobile Nav */}
         <Sheet>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="メニューを開く">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>

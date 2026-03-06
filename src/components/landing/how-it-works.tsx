@@ -33,10 +33,10 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-white py-20">
+    <section id="how-it-works" aria-labelledby="how-it-works-heading" className="bg-white py-20">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900">
+          <h2 id="how-it-works-heading" className="mb-4 text-3xl font-bold text-gray-900">
             4ステップで簡単マッチング
           </h2>
           <p className="text-gray-600">
@@ -47,14 +47,14 @@ export function HowItWorks() {
           {steps.map((step, index) => (
             <div key={step.title} className="relative text-center">
               {index < steps.length - 1 && (
-                <div className="absolute right-0 top-8 hidden h-0.5 w-full translate-x-1/2 bg-gray-200 lg:block" />
+                <div aria-hidden="true" className="absolute right-0 top-8 hidden h-0.5 w-full translate-x-1/2 bg-gray-200 lg:block" />
               )}
               <div
                 className={`relative z-10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${step.color}`}
               >
                 <step.icon className="h-7 w-7" />
               </div>
-              <div className="mb-2 text-sm font-medium text-orange-600">
+              <div className="mb-2 text-sm font-medium text-orange-700">
                 STEP {index + 1}
               </div>
               <h3 className="mb-2 text-lg font-bold text-gray-900">

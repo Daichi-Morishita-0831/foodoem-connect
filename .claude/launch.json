@@ -4,8 +4,8 @@
     {
       "name": "foodoem-dev",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["-c", "cd /Users/vegekul-024/Desktop/Claude/foodoem-connect && npx next dev"],
-      "port": 3000
+      "runtimeArgs": ["-c", "cd /Users/vegekul-024/Desktop/Claude/foodoem-connect && npx next dev -p 3001"],
+      "port": 3001
     }
   ]
 }

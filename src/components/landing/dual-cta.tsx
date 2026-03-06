@@ -3,9 +3,9 @@ import { UtensilsCrossed, Factory } from "lucide-react";
 
 export function DualCta() {
   return (
-    <section className="bg-gradient-to-r from-orange-600 to-amber-600 py-20 text-white">
+    <section aria-labelledby="cta-heading" className="bg-gradient-to-r from-orange-600 to-amber-600 py-20 text-white">
       <div className="container mx-auto px-4">
-        <h2 className="mb-4 text-center text-3xl font-bold">
+        <h2 id="cta-heading" className="mb-4 text-center text-3xl font-bold">
           さあ、始めましょう
         </h2>
         <p className="mb-12 text-center text-orange-100">
@@ -25,7 +25,7 @@ export function DualCta() {
             </p>
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-orange-600 transition hover:bg-orange-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 font-semibold text-orange-700 transition hover:bg-orange-50"
             >
               無料で始める
             </Link>
